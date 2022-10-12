@@ -70,7 +70,19 @@ cellrouter.het@var.genes <- rownames(var.genes[1:2000, ])
 #scale the data
 cellrouter.het <- scaleData(cellrouter.het, genes.use = cellrouter.het@var.genes)
 
-#dimensional reduction
+
+#dimensional reduction (t-SNE)
+cellrouter.het <- computePCA(cellrouter.het, assay.type = "RNA", seed = 42, num.pcs = 50, genes.use = cellrouter.het@var.genes)
+plot(cellrouter.het@pca$sdev)
+
+cellrouter.het <- computeTSNE(cellrouter.het, num.pcs = 15, seed = 42, max_iter = 1000)
+
+cellrouter.het <- customSpace(cellrouter.het, cellrouter.het@tsne$cell.embeddings)
+
+plotReducedDimension(cellrouter.het, reduction.type = 'tsne', dims.use = c(1,2), annotation = "celltype", annotation.color = 'celltype_color', showlabels = TRUE)
+
+
+#dimensional reduction (UMAP)
 cellrouter.het <- computePCA(cellrouter.het, assay.type = "RNA", seed = 42, num.pcs = 50, genes.use = cellrouter.het@var.genes) 
 umap.done <- uwot::umap(cellrouter.het@pca$cell.embeddings[, 1:15], spread = 1, min_dist = 0.3, n_neighbors = 30, metric = "cosine")
 rownames(umap.done) <- rownames(cellrouter.het@pca$cell.embeddings)
