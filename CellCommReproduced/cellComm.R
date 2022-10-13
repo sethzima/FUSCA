@@ -78,7 +78,7 @@ plot <- plotSignaturesHeatmap(cellrouter.eht, assay.type = "RNA", markers.top, g
 grid::grid.draw(plot$gtable)
 
 
-
+#mean expression of ligands and receptors per cluster
 lr_network = readRDS(url("https://zenodo.org/record/3260758/files/lr_network.rds"))# from NicheNet
 head(lr_network)
 
@@ -95,8 +95,9 @@ ligands.receptors <- unique(c(ligands, receptors))
 
 
 
+#assay type error, changed from celltype to population
 mean.expr <- computeValue(cellrouter.eht, assay.type = "RNA", 
-                          genelist = ligands.receptors, "celltype", fun = "mean"); gc();
+                          genelist = ligands.receptors, column = "population", fun = "mean"); gc();
 
 interactions <- population.pairing(mean.expr = mean.expr, pairs = pairs, ligands = ligands, receptors = receptors, threshold = 0.25)
 
@@ -104,4 +105,8 @@ interactions <- calculateObservedMean(mean.expr = mean.expr, interactions = inte
 head(interactions)
 
 markers <- findSignatures(cellrouter.eht, assay.type = "RNA", 
-                          column = "celltype", pos.only = TRUE, fc.threshold = 0.2, nCores = 10); gc();
+                          column = "population", pos.only = TRUE, fc.threshold = 0.2, nCores = 10); gc();
+
+
+
+
