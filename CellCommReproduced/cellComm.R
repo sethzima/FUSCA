@@ -108,6 +108,7 @@ markers <- findSignatures(cellrouter.eht, assay.type = "RNA",
                           column = "population", pos.only = TRUE, fc.threshold = 0.2, nCores = 10); gc();
 
 
+<<<<<<< HEAD
 #calculate null distribution of intracluster gene expression means
 genelist <- unique(c(interactions$ligand, interactions$receptor))
 
@@ -147,5 +148,7 @@ plots <- predictCellInteractions(cellrouter.eht, assay.type = "RNA", sample.name
 options(repr.plot.width = 22, repr.plot.height = 7)
 gridExtra::grid.arrange(grobs = plots, ncol = 1)
 
+=======
+>>>>>>> 8b230e1f8518ed862bde7a5ffb9b055438081583
 
 
