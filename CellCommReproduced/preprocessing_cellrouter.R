@@ -38,7 +38,6 @@ data[1:5, 1:5]
 
 cellrouter.het <- CreateCellRouter(data, assay.type = "RNA", min.genes = 200, min.cells = 3, is.expr = 0)
 
-
 mito.genes <- grep(pattern = "^MT-", x = rownames(x = cellrouter.het@assays$RNA@ndata), value = TRUE)
 percent.mito <- Matrix::colSums(cellrouter.het@assays$RNA@ndata[mito.genes, ]) / Matrix::colSums(cellrouter.het@assays$RNA@ndata)
 ribo.genes <- grep(pattern = "^RP[SL]", x = rownames(x = cellrouter.het@assays$RNA@ndata), value = TRUE)
