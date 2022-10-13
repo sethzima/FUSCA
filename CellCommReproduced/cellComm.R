@@ -78,7 +78,7 @@ plot <- plotSignaturesHeatmap(cellrouter.eht, assay.type = "RNA", markers.top, g
 grid::grid.draw(plot$gtable)
 
 
-
+#mean expression of ligands and receptors per cluster
 lr_network = readRDS(url("https://zenodo.org/record/3260758/files/lr_network.rds"))# from NicheNet
 head(lr_network)
 
@@ -95,8 +95,9 @@ ligands.receptors <- unique(c(ligands, receptors))
 
 
 
+#assay type error, changed from celltype to population
 mean.expr <- computeValue(cellrouter.eht, assay.type = "RNA", 
-                          genelist = ligands.receptors, "celltype", fun = "mean"); gc();
+                          genelist = ligands.receptors, column = "population", fun = "mean"); gc();
 
 interactions <- population.pairing(mean.expr = mean.expr, pairs = pairs, ligands = ligands, receptors = receptors, threshold = 0.25)
 
@@ -104,4 +105,47 @@ interactions <- calculateObservedMean(mean.expr = mean.expr, interactions = inte
 head(interactions)
 
 markers <- findSignatures(cellrouter.eht, assay.type = "RNA", 
-                          column = "celltype", pos.only = TRUE, fc.threshold = 0.2, nCores = 10); gc();
+                          column = "population", pos.only = TRUE, fc.threshold = 0.2, nCores = 10); gc();
+
+
+#calculate null distribution of intracluster gene expression means
+genelist <- unique(c(interactions$ligand, interactions$receptor))
+
+p <- clusterPermutation(cellrouter.eht, assay.type = "RNA", 
+                        genelist = genelist, interactions = interactions, cluster.label = "population", nPerm = 1000, nCores = 10)
+
+interactions.p <- calculatePvalue(p, nPerm = 1000, interactions2 = interactions)
+
+#saveRDS(interactions.p, file = paste(bd, "/interactions_with_Pvalue_1000_cluster.rds", sep = ""))
+#interactions.p <- readRDS(paste(basedir, "/interactions_with_Pvalue_1000_cluster.rds", sep = ""))
+tmp <- interactions.p[which(interactions.p$pvalue < 0.01),]
+head(tmp)
+
+
+
+#network calculation
+my_matrix <- interactionmatrix(tmp)
+head(matrix)
+
+my_graph <- cellnetwork3(tmp, threshold = 5)
+
+cellrouter.eht <- calculateCentroids(cellrouter.eht, assay.type = "RNA", sample.name = "Sample1", 
+                                 cluster.column = "population", cluster.type = "Cluster")
+
+cellrouter.eht <- calculateDistanceMatrix(cellrouter.eht, assay.type = "RNA", sample.name = "Sample1", 
+                                      cluster.type = "Cluster", spot_distance = 100, normalize = FALSE)
+function (data = NA, nrow = 1, ncol = 1, byrow = FALSE, dimnames = NULL) 
+   {                                                                        
+         if (is.object(data) || !is.atomic(data))                             
+               data <- as.vector(data)                                          
+           .Internal(matrix(data, nrow, ncol, byrow, dimnames, missing(nrow),   
+                                      missing(ncol)))
+}
+      
+plots <- predictCellInteractions(cellrouter.eht, assay.type = "RNA", sample.name = "Sample1", 
+                                       cluster.type = "Cluster", graph = my_graph, distance.threshold = 0.75)
+options(repr.plot.width = 22, repr.plot.height = 7)
+gridExtra::grid.arrange(grobs = plots, ncol = 1)
+
+
+
